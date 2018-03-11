@@ -3,7 +3,7 @@ package main
 import (
 	"crypto/rand"
 	"encoding/base64"
-	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/google/go-github/github"
@@ -31,36 +31,36 @@ func Redirect(w http.ResponseWriter, r *http.Request) {
 func Callback(w http.ResponseWriter, r *http.Request) {
 	session, err := store.Get(r, "sess")
 	if err != nil {
-		fmt.Fprintln(w, "aborted")
+		log.Fatalf("Failed to get session object")
 		return
 	}
 
 	if r.URL.Query().Get("state") != session.Values["state"] {
-		fmt.Fprintln(w, "no state match; possible csrf OR cookies not enabled")
+		log.Fatalf("Invalid state")
 		return
 	}
 
-	tkn, err := oauthConfig.Exchange(oauth2.NoContext, r.URL.Query().Get("code"))
+	token, err := oauthConfig.Exchange(oauth2.NoContext, r.URL.Query().Get("code"))
 	if err != nil {
-		fmt.Fprintln(w, "there was an issue getting your token")
+		log.Fatalf("Incorrect code")
 		return
 	}
 
-	if !tkn.Valid() {
-		fmt.Fprintln(w, "retrieved invalid token")
+	if !token.Valid() {
+		log.Fatalf("Invalid token")
 		return
 	}
 
-	githubClient := github.NewClient(oauthConfig.Client(oauth2.NoContext, tkn))
+	githubClient := github.NewClient(oauthConfig.Client(oauth2.NoContext, token))
 	user, _, err := githubClient.Users.Get(oauth2.NoContext, "")
 	if err != nil {
-		fmt.Println(w, "error getting name")
+		log.Fatalf("Retrieve userinfo failed")
 		return
 	}
 
 	session.Values["name"] = user.Name
-	session.Values["accessToken"] = tkn.AccessToken
+	session.Values["accessToken"] = token.AccessToken
 	session.Save(r, w)
-	fmt.Println(tkn.AccessToken)
+
 	http.Redirect(w, r, "/", 302)
 }

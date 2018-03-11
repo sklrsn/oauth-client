@@ -24,8 +24,10 @@ var (
 	oauthClient *OauthClient
 	oauthConfig *oauth2.Config
 	store       *sessions.CookieStore
-	scopes      = []string{"repo"}
-	templates   = map[string]*template.Template{}
+
+	//scopes - repo, user
+	scopes    = []string{"repo"}
+	templates = map[string]*template.Template{}
 )
 
 func main() {
