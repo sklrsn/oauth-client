@@ -20,7 +20,7 @@ func Redirect(w http.ResponseWriter, r *http.Request) {
 
 	state := base64.URLEncoding.EncodeToString(b)
 
-	session, _ := store.Get(r, "sess")
+	session, _ := store.Get(r, "session")
 	session.Values["state"] = state
 	session.Save(r, w)
 
@@ -29,7 +29,7 @@ func Redirect(w http.ResponseWriter, r *http.Request) {
 }
 
 func Callback(w http.ResponseWriter, r *http.Request) {
-	session, err := store.Get(r, "sess")
+	session, err := store.Get(r, "session")
 	if err != nil {
 		log.Fatalf("Failed to get session object")
 		return
